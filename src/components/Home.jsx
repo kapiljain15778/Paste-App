@@ -1,16 +1,78 @@
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { useSearchParams } from "react-router-dom";
+import { addToPastes, updateToPastes } from "../redux/pasteSlice";
 
 const Home = () => {
   const [title, setTitle] = useState("");
+  const [value, setValue] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const pasteId = searchParams.get("pasteId");
+  const dispatch = useDispatch();
+
+  const createPaste = () => {
+    const paste = {
+      title: title,
+      content: value,
+      _id:
+        pasteId ||
+        Date.now().toString(36) + Math.random().toString(36).substring(2),
+      createdAt: new Date().toISOString(),
+    };
+
+    if (pasteId) {
+      // If pasteId is present, update the paste
+      dispatch(updateToPastes(paste));
+    } else {
+      dispatch(addToPastes(paste));
+    }
+
+    setTitle("");
+    setValue("");
+
+    // Remove the pasteId from the URL after creating/updating a paste
+    setSearchParams({});
+  };
   return (
     <div>
-      <input
-        className="p-2 rounded-2xl mt-2"
-        type="text"
-        placeholder="Enter title here"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
+      <div className="flex flex-row gap-7 place-content-between">
+        {/* <input
+          className="p-2 rounded-2xl mt-2"
+          type="text"
+          placeholder="Enter title here"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        /> */}
+        <input
+          type="text"
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          // Dynamic width based on whether pasteId is present
+          className={`${
+            pasteId ? "w-[80%]" : "w-[85%]"
+          } text-black border border-input rounded-md p-2`}
+        />
+        <button
+          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700"
+          onClick={createPaste}
+        >
+          {pasteId ? "Update Paste" : "Create My Paste"}
+        </button>
+      </div>
+      <div>
+        {/* TextArea */}
+        <textarea
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="Write Your Content Here...."
+          className="w-full p-3  focus-visible:ring-0"
+          style={{
+            caretColor: "#000",
+          }}
+          rows={20}
+        />
+      </div>
     </div>
   );
 };
